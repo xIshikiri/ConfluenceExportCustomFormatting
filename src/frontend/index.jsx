@@ -93,9 +93,9 @@ const App = () => {
                 {label: 'Markdown', value: 'markdown'},
                 {label: 'SteamBB', value: 'steambb'},
             ]} onChange={({value}) => setFormat(value)} />
-            <br/>
+
             <Button appearance="primary" onClick={exportContent}>Export</Button>
-            <br/>
+
             {/*<Button appearance="primary" onClick={exportContentClipboard}>Export to Clipboard</Button>*/}
             {convertedText && (
                 <TextArea isReadOnly={true} value={convertedText}></TextArea>
