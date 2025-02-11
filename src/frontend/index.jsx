@@ -11,7 +11,7 @@ const convertToMarkdown = (storageFormat) => {
         .replace(/<strong>(.*?)<\/strong>/g, '**$1**')  // Convert bold
         .replace(/<em>(.*?)<\/em>/g, '*$1*')  // Convert italics
         .replace(/<u>(.*?)<\/u>/g, '__$1__')  // Convert underline
-        .replace(/<strike>(.*?)<\/strike>/g, '\~\~$1\~\~') // Convert strikethrough
+        .replace(/<del>(.*?)<\/del>/g, '\~\~$1\~\~') // Convert strikethrough
         .replace(/<code>(.*?)<\/code>/g, '`$1`')  // Convert inline code
         .replace(/<h1>(.*?)<\/h1>/g, '# $1\n')  // Convert headers
         .replace(/<h2>(.*?)<\/h2>/g, '## $1\n') // Convert headers
@@ -30,7 +30,7 @@ const convertToSteamBB = (storageFormat) => {
         .replace(/<strong>(.*?)<\/strong>/g, '[b]$1[/b]')  // Convert bold
         .replace(/<em>(.*?)<\/em>/g, '[i]$1[/i]')  // Convert italics
         .replace(/<u>(.*?)<\/u>/g, '[u]$1[/u]')  // Convert underline
-        .replace(/<strike>(.*?)<\/strike>/g, '[strike]$1[/strike]') // Convert strikethrough
+        .replace(/<del>(.*?)<\/del>/g, '[strike]$1[/strike]') // Convert strikethrough
         .replace(/<code>(.*?)<\/code>/g, '[code]$1[/code]')  // Convert inline code
         .replace(/<h1>(.*?)<\/h1>/g, '[h1]$1[/h1]\n')  // Convert headers
         .replace(/<h2>(.*?)<\/h2>/g, '[h2]$1[/h2]\n') // Convert headers
@@ -69,17 +69,23 @@ const App = () => {
 
         const storageFormat = data.body.storage.value;
         const output = format === 'markdown' ? convertToMarkdown(storageFormat) : convertToSteamBB(storageFormat);
-
-        output.replace(/\n/g, '<br />'); // Replace newlines with <br /> tags
-
         console.log('Converted output: \n', output);
         setConvertedText(output);
     };
 
-    const exportContentClipboard = () => {
-        exportContent();
-        navigator.clipboard.writeText(convertedText);
-    }
+/*
+    const exportContentClipboard = async () => {
+        try {
+            await exportContent();
+            focus();
+            await navigator.clipboard.writeText(convertedText);
+            console.log("Content copied to clipboard");
+        } catch (error) {
+            console.error("Error copying content:", error);
+        }
+    };
+*/
+
 
     return (
         <Fragment>
@@ -87,8 +93,10 @@ const App = () => {
                 {label: 'Markdown', value: 'markdown'},
                 {label: 'SteamBB', value: 'steambb'},
             ]} onChange={({value}) => setFormat(value)} />
+            <br/>
             <Button appearance="primary" onClick={exportContent}>Export</Button>
-            <Button appearance="primary" onClick={exportContentClipboard}>Export to Clipboard</Button>
+            <br/>
+            {/*<Button appearance="primary" onClick={exportContentClipboard}>Export to Clipboard</Button>*/}
             {convertedText && (
                 <TextArea isReadOnly={true} value={convertedText}></TextArea>
             )}
