@@ -6,8 +6,19 @@ import {invoke} from '@forge/bridge';
 
 // Function to convert Confluence storage format to Markdown
 const convertToMarkdown = (storageFormat) => {
+    let processedText = storageFormat.replace(/<ol[^>]*>(.*?)<\/ol>/gs, (match) => {
+
+        let counter = 0; // Counter for ordered list numbering
+
+        // Replace each <li> inside this <ol> with a numbered list item
+        return match.replace(/<li>(.*?)<\/li>/g, (liMatch, liContent) => {
+            counter += 1;
+            return `${counter}. ${liContent}\n`;
+        });
+    });
+
     // Convert known HTML tags to Markdown equivalents
-    return storageFormat
+    return processedText
         .replace(/<strong>(.*?)<\/strong>/g, '**$1**')  // Convert bold
         .replace(/<em>(.*?)<\/em>/g, '*$1*')  // Convert italics
         .replace(/<u>(.*?)<\/u>/g, '__$1__')  // Convert underline
@@ -16,7 +27,6 @@ const convertToMarkdown = (storageFormat) => {
         .replace(/<h1>(.*?)<\/h1>/g, '# $1\n')  // Convert headers
         .replace(/<h2>(.*?)<\/h2>/g, '## $1\n') // Convert headers
         .replace(/<h3>(.*?)<\/h3>/g, '### $1\n')  // Convert headers
-        .replace(/<ul>/g, '').replace(/<\/ul>/g, '')  // Convert lists
         .replace(/<li>(.*?)<\/li>/g, '- $1\n')  // Bullet points
         .replace(/<\/p>/g, '\n')    // Paragraph end to newline
         .replace(/<br\s*\/?>/g, '\n')   // <br> to newline
@@ -36,6 +46,7 @@ const convertToSteamBB = (storageFormat) => {
         .replace(/<h2>(.*?)<\/h2>/g, '[h2]$1[/h2]\n') // Convert headers
         .replace(/<h3>(.*?)<\/h3>/g, '[h3]$1[/h3]\n')  // For SteamBB headers
         .replace(/<ul>/g, '[list]').replace(/<\/ul>/g, '[/list]')  // Convert lists
+        .replace(/<ol>/g, '[olist]').replace(/<\/ol>/g, '[/olist]') // Convert ordered lists
         .replace(/<li>(.*?)<\/li>/g, '[*] $1\n')  // Bullet points
         .replace(/<\/p>/g, '\n')    // Paragraph end to newline
         .replace(/<br\s*\/?>/g, '\n')   // <br> to newline
@@ -61,6 +72,12 @@ const App = () => {
         }
     }, [contentId]);
 
+    const decodeHtmlEntities = (text) => {
+        const txt = document.createElement("textarea");
+        txt.innerHTML = text;
+        return txt.value;
+    };
+
     const exportContent = () => {
         if (!data || !data.body || !data.body.storage.value) {
             console.error("No storage format found");
@@ -70,9 +87,8 @@ const App = () => {
         const storageFormat = data.body.storage.value;
         const output = format === 'markdown' ? convertToMarkdown(storageFormat) : convertToSteamBB(storageFormat);
         console.log('Converted output: \n', output);
-        setConvertedText(output);
+        setConvertedText(decodeHtmlEntities(output));
     };
-
 /*
     const exportContentClipboard = async () => {
         try {
@@ -98,7 +114,7 @@ const App = () => {
 
             {/*<Button appearance="primary" onClick={exportContentClipboard}>Export to Clipboard</Button>*/}
             {convertedText && (
-                <TextArea isReadOnly={true} value={convertedText}></TextArea>
+                <TextArea isReadOnly={true} value={convertedText} />
             )}
         </Fragment>
     );
